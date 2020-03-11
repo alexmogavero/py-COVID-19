@@ -16,23 +16,25 @@ def plot_data(data_dict):
     y = [dt['totale_casi'] for dt in data_dict]
     
     popt, y_fit = fit_data(t,y)
-    print(popt, y_fit)
-
+    fit_label = '{:.2f}^{:.2f}(t-{:.2f})'.format(*popt)
+    
     pyplot.figure()
     ax = pyplot.axes()
     pyplot.plot_date(t,y)
+    pyplot.plot_date(t,y_fit,fmt='-',label=fit_label)
     formatter = dates.DateFormatter('%d/%m')
     ax.xaxis.set_major_formatter(formatter)
+    ax.legend()
     pyplot.xlabel('Data')
     pyplot.ylabel('totale casi')
     
-def exp_fun(t,a,b):
-    return np.power(a,b*t)
+def exp_fun(t,a,b,t0):
+    return np.power(a,b*(t-t0))
 
 def fit_data(t,y):
-    t_float = [(tt-t[0])/timedelta(days=1) for tt in t]
+    t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
     popt, pcov = curve_fit(exp_fun, t_float, y)
-    y_fit = exp_fun(t_float, popt[0], popt[1])
+    y_fit = exp_fun(t_float, *popt)
     return popt, y_fit
     
 def plot_regione(data_dict, nome_reg):
