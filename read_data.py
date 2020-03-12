@@ -15,13 +15,15 @@ def plot_data(data_dict):
     t = [parser.parse(dt['data']) for dt in data_dict]
     y = [dt['totale_casi'] for dt in data_dict]
     
-    popt, y_fit = fit_data(t,y)
+    t_fit = range(7)
+    t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
+    popt, y_fit = fit_data(t,y,t_fit)
     fit_label = '{1:.2f}*{0:.2f}(exp((t-{2:.2f})/{0:.2f})-1)'.format(*popt)
     
     pyplot.figure()
     ax = pyplot.axes()
     pyplot.plot_date(t,y)
-    pyplot.plot_date(t,y_fit,fmt='-',label=fit_label)
+    pyplot.plot_date(t_fit,y_fit,fmt='-',label=fit_label)
     formatter = dates.DateFormatter('%d/%m')
     ax.xaxis.set_major_formatter(formatter)
     ax.legend()
@@ -31,10 +33,12 @@ def plot_data(data_dict):
 def exp_fun(t,tau,i0,t0):
     return i0*tau*(np.exp((t-t0)/tau) - 1.0)
 
-def fit_data(t,y):
+def fit_data(t,y,t_fit):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
     popt, pcov = curve_fit(exp_fun, t_float, y)
-    y_fit = exp_fun(t_float, *popt)
+    
+    t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
+    y_fit = exp_fun(t_fit_float, *popt)
     return popt, y_fit
     
 def plot_regione(data_dict, nome_reg):
