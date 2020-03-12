@@ -18,7 +18,7 @@ def plot_data(data_dict):
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
     popt, y_fit = fit_data(t,y,t_fit)
-    fit_label = '{1:.2f}*{0:.2f}(exp((t-{2:.2f})/{0:.2f})-1)'.format(*popt)
+    fit_label = '{1:.2f}exp(t/{0:.2f})'.format(*popt)
     
     pyplot.figure()
     ax = pyplot.axes()
@@ -30,8 +30,8 @@ def plot_data(data_dict):
     pyplot.xlabel('Data')
     pyplot.ylabel('totale casi')
     
-def exp_fun(t,tau,i0,t0):
-    return i0*tau*(np.exp((t-t0)/tau) - 1.0)
+def exp_fun(t,tau,i0):
+    return i0*np.exp(t/tau)
 
 def fit_data(t,y,t_fit):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
