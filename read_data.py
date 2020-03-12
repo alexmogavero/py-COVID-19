@@ -60,6 +60,8 @@ if __name__=="__main__":
     
     plot_regione(data_reg, 'Lazio')
     
+    plot_regione(data_reg, 'Lombardia')
+    
     plot_stato(data_stato)
     
     pyplot.show()
