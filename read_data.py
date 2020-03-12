@@ -35,6 +35,9 @@ def exp_fun(t,tau,i0):
 
 def fit_data(t,y,t_fit):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
+    y = np.array(y)
+    t_float = t_float[y>0]
+    y = y[y>0]
     popt, pcov = curve_fit(exp_fun, t_float, y)
     
     t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
