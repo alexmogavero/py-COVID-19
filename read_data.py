@@ -11,9 +11,9 @@ DATA_DIR = "/home/oslo/Software/COVID-19/dati-json/"
 FILE_STATO = "dpc-covid19-ita-andamento-nazionale.json"
 FILE_REG = "dpc-covid19-ita-regioni.json"
 
-def plot_data(data_dict):
+def plot_data(data_dict, shift=0):
     t = [parser.parse(dt['data']) for dt in data_dict]
-    y = [dt['totale_casi'] for dt in data_dict]
+    y = [dt['totale_casi']-shift for dt in data_dict]
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
@@ -45,7 +45,11 @@ def fit_data(t,y,t_fit):
     return popt, y_fit
     
 def plot_regione(data_dict, nome_reg):
-    plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg])
+    if nome_reg=='Lazio':
+        plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg], shift=3)
+    else:
+        plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg])
+        
     pyplot.title(nome_reg)
     
 def plot_stato(data_dict):
