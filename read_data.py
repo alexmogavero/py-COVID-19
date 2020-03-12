@@ -4,7 +4,7 @@ from matplotlib import pyplot, dates
 from dateutil import parser
 from datetime import timedelta
 from scipy.optimize import curve_fit
-from math import pow
+from math import pow, log
 import numpy as np
 
 DATA_DIR = "/home/oslo/Software/COVID-19/dati-json/"
@@ -17,8 +17,7 @@ def plot_data(data_dict, shift=0):
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
-    popt, y_fit = fit_data(t,y,t_fit)
-    fit_label = '{1:.2f}exp(t/{0:.2f})'.format(*popt)
+    fit_label, y_fit = fit_data(t,y,t_fit)
     
     pyplot.figure()
     ax = pyplot.axes()
@@ -42,7 +41,10 @@ def fit_data(t,y,t_fit):
     
     t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
     y_fit = exp_fun(t_fit_float, *popt)
-    return popt, y_fit
+    
+    t0 = log(popt[1])*popt[0]
+    label = 'tau={:.2f} t0={:.2f}'.format(popt[0],t0)
+    return label, y_fit
     
 def plot_regione(data_dict, nome_reg):
     if nome_reg=='Lazio':
