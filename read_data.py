@@ -22,6 +22,7 @@ def plot_data(data_dict, shift=0, ax=None):
     if ax is None:
         pyplot.figure()
         ax = pyplot.axes()
+        ax.set_prop_cycle(color=['b','b','r','r','g','g','m','m','c','c','k','k'])
         pyplot.xlabel('Data')
         pyplot.ylabel('totale casi')
         formatter = dates.DateFormatter('%d/%m')
@@ -30,6 +31,8 @@ def plot_data(data_dict, shift=0, ax=None):
     ax.plot_date(t,y)
     ax.plot_date(t_fit,y_fit,fmt='-',label=fit_label)
     ax.legend()
+    
+    return ax
     
     
 def exp_fun(t,tau,i0):
@@ -53,15 +56,13 @@ def plot_regione(data_dict, reg):
     if not isinstance(reg, list):
         reg = [reg]
         
-    pyplot.figure()
-    ax = pyplot.axes()
-    ax.set_prop_cycle(color=['b','b','r','r','g','g','m','m','c','c','k','k'])
+    ax = None
     for nome_reg in reg:
         if nome_reg=='Lazio':
-            plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
+            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
                     shift=3, ax=ax)
         else:
-            plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg], ax=ax)
+            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg], ax=ax)
             
     pyplot.title(nome_reg)
     
