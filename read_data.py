@@ -11,7 +11,7 @@ DATA_DIR = "/home/oslo/Software/COVID-19/dati-json/"
 FILE_STATO = "dpc-covid19-ita-andamento-nazionale.json"
 FILE_REG = "dpc-covid19-ita-regioni.json"
 
-def plot_data(data_dict, shift=0, ax=None):
+def plot_data(data_dict, shift=0, ax=None, name=''):
     t = [parser.parse(dt['data']) for dt in data_dict]
     y = [dt['totale_casi']-shift for dt in data_dict]
     
@@ -29,7 +29,7 @@ def plot_data(data_dict, shift=0, ax=None):
         ax.xaxis.set_major_formatter(formatter)
         
     ax.plot_date(t,y)
-    ax.plot_date(t_fit,y_fit,fmt='-',label=fit_label)
+    ax.plot_date(t_fit,y_fit,fmt='-',label=name + ' ' + fit_label)
     ax.legend()
     
     return ax
@@ -58,11 +58,17 @@ def plot_regione(data_dict, reg):
         
     ax = None
     for nome_reg in reg:
+        if len(reg)>1:
+            nm = nome_reg
+        else:
+            nm = ''
+            
         if nome_reg=='Lazio':
             ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
-                    shift=3, ax=ax)
+                    shift=3, ax=ax, name=nm)
         else:
-            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg], ax=ax)
+            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
+                    ax=ax, name=nm)
             
     pyplot.title(nome_reg)
     
