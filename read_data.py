@@ -17,7 +17,7 @@ def plot_data(data_dict, shift=0, ax=None, name=''):
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
-    fit_label, y_fit = fit_data(t,y,t_fit)
+    fit_label, y_fit = fit_data(t,y,t_fit)[0:2]
     
     if ax is None:
         pyplot.figure()
@@ -38,19 +38,25 @@ def plot_data(data_dict, shift=0, ax=None, name=''):
 def exp_fun(t,tau,i0):
     return i0*np.exp(t/tau)
 
-def fit_data(t,y,t_fit):
+def fit_data(t,y,*argv):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
     y = np.array(y)
     t_float = t_float[y>0]
     y = y[y>0]
     popt, pcov = curve_fit(exp_fun, t_float, y)
     
-    t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
-    y_fit = exp_fun(t_fit_float, *popt)
+    if len(argv)>0:
+        t_fit = argv[0]
+        
+        t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
+        y_fit = exp_fun(t_fit_float, *popt)
+        
+        t0 = log(popt[1])*popt[0]
+        label = 'tau={:.2f} t0={:.2f}'.format(popt[0],t0)  
     
-    t0 = log(popt[1])*popt[0]
-    label = 'tau={:.2f} t0={:.2f}'.format(popt[0],t0)
-    return label, y_fit
+        return label, y_fit, popt
+    else:
+        return popt
     
 def plot_regione(data_dict, reg):
     if not isinstance(reg, list):
@@ -75,6 +81,22 @@ def plot_regione(data_dict, reg):
 def plot_stato(data_dict):
     plot_data(data_dict)
     pyplot.title('Italia')
+    
+def summary_regioni(data_dict):
+    r_name = set([d['denominazione_regione'] for d in data_dict])
+    
+    for nm in r_name:
+        if nm == 'Lazio':
+            shift = 3
+        else:
+            shift = 0
+            
+        t = [parser.parse(dt['data']) for dt in data_dict if dt['denominazione_regione']==nm]
+        y = [dt['totale_casi']-shift for dt in data_dict if dt['denominazione_regione']==nm]
+        
+        popt = fit_data(t,y)
+        
+        print('{}: tau={:.2f}gg t0={:.2f}gg'.format(nm, *popt))
 
 if __name__=="__main__":
     with open(path.join(DATA_DIR,FILE_REG), 'r') as f:
@@ -85,10 +107,12 @@ if __name__=="__main__":
         
     plot_regione(data_reg, ['Campania', 'Lazio'])
     
-    plot_regione(data_reg, 'Lazio')
+    plot_regione(data_reg, 'Calabria')
     
     plot_regione(data_reg, 'Lombardia')
     
     plot_stato(data_stato)
+    
+    summary_regioni(data_reg)
     
     pyplot.show()
