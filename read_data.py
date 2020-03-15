@@ -11,9 +11,9 @@ DATA_DIR = "/home/oslo/Software/COVID-19/dati-json/"
 FILE_STATO = "dpc-covid19-ita-andamento-nazionale.json"
 FILE_REG = "dpc-covid19-ita-regioni.json"
 
-def plot_data(data_dict, shift=0, ax=None, name=''):
+def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     t = [parser.parse(dt['data']) for dt in data_dict]
-    y = [dt['totale_casi']-shift for dt in data_dict]
+    y = [dt[y_name]-shift for dt in data_dict]
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
@@ -24,7 +24,7 @@ def plot_data(data_dict, shift=0, ax=None, name=''):
         ax = pyplot.axes()
         ax.set_prop_cycle(color=['b','b','r','r','g','g','m','m','c','c','k','k'])
         pyplot.xlabel('Data')
-        pyplot.ylabel('totale casi')
+        pyplot.ylabel(y_name)
         formatter = dates.DateFormatter('%d/%m')
         ax.xaxis.set_major_formatter(formatter)
         
@@ -58,7 +58,7 @@ def fit_data(t,y,*argv):
     else:
         return label, popt
     
-def plot_regione(data_dict, reg):
+def plot_regione(data_dict, reg, y_name='totale_casi'):
     if not isinstance(reg, list):
         reg = [reg]
         
@@ -70,19 +70,20 @@ def plot_regione(data_dict, reg):
             nm = ''
             
         if nome_reg=='Lazio':
-            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
-                    shift=3, ax=ax, name=nm)
+            shift = 3
         else:
-            ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
-                    ax=ax, name=nm)
+            shift = 0
+            
+        ax = plot_data([d for d in data_dict if d['denominazione_regione']==nome_reg],
+                    shift=shift, ax=ax, name=nm, y_name=y_name)
             
     pyplot.title(nome_reg)
     
-def plot_stato(data_dict):
-    plot_data(data_dict)
+def plot_stato(data_dict, y_name='totale_casi'):
+    plot_data(data_dict, y_name=y_name)
     pyplot.title('Italia')
     
-def summary_regioni(data_dict):
+def summary_regioni(data_dict, y_name='totale_casi'):
     r_name = set([d['denominazione_regione'] for d in data_dict])
     
     for nm in r_name:
@@ -92,7 +93,7 @@ def summary_regioni(data_dict):
             shift = 0
             
         t = [parser.parse(dt['data']) for dt in data_dict if dt['denominazione_regione']==nm]
-        y = [dt['totale_casi']-shift for dt in data_dict if dt['denominazione_regione']==nm]
+        y = [dt[y_name]-shift for dt in data_dict if dt['denominazione_regione']==nm]
         
         label = fit_data(t,y)[0]
         
@@ -105,14 +106,16 @@ if __name__=="__main__":
     with open(path.join(DATA_DIR,FILE_STATO), 'r') as f:
         data_stato = json.load(f)
         
-    plot_regione(data_reg, ['Campania', 'Lazio'])
+    y_name = 'totale_ospedalizzati'
+        
+    plot_regione(data_reg, ['Campania', 'Lazio'], y_name=y_name)
     
-    plot_regione(data_reg, 'Calabria')
+    plot_regione(data_reg, 'Puglia', y_name=y_name)
     
-    plot_regione(data_reg, 'Lombardia')
+    plot_regione(data_reg, 'Lombardia', y_name=y_name)
     
-    plot_stato(data_stato)
+    plot_stato(data_stato, y_name=y_name)
     
-    summary_regioni(data_reg)
+    summary_regioni(data_reg, y_name=y_name)
     
     pyplot.show()
