@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from os import path
 import json
 from matplotlib import pyplot, dates
@@ -17,7 +19,7 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
-    fit_label, y_fit = fit_data(t,y,exp_fun,t_fit)[0:2]
+    fit_label, y_fit = fit_data(t,y,t_fit)[0:2]
     
     if ax is None:
         pyplot.figure()
@@ -34,38 +36,70 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     
     return ax
      
-def exp_fun(t,tau,i0):
-    if t is None:
-        t0 = log(i0)*tau
-        label = 'tau={:.2f} t0={:.2f}'.format(tau,t0)
-        return label
-    else:
+class Fitting(object):
+    def __init__(self, t, y):
+        super().__init__()
+        
+        self._fit(t, y)
+        
+    def _fit(self,t,y):
+        popt = curve_fit(self._func, t, y)[0]
+        
+        self.param = popt
+     
+    @staticmethod   
+    def _func(t,*argv):
+        raise NotImplementedError('Method _func not implemented!')
+    
+    def label(self):
+        raise NotImplementedError('Method label not implemented!')
+    
+    def evaluate(self, t):
+        return self._func(t, *self.param)
+        
+class Exponential(Fitting):
+    def __init__(self, t, y):
+        super().__init__(t, y)
+        
+    @staticmethod
+    def _func(t,tau,i0):
         return i0*np.exp(t/tau)
-
-def logistica_fun(t,K,C,h):
-    if t is None:
-        return 'K={:.2f} C={:.2f} h={:.2f}'.format(K,C,h)
-    else:
+    
+    def label(self):
+        tau = self.param[0]
+        i0 = self.param[1]
+        t0 = log(i0)*tau
+        return 'tau={:.2f} t0={:.2f}'.format(tau,t0)
+        
+class Logistica(Fitting):
+    def __init__(self, t, y):
+        super().__init__(t, y)
+        
+    @staticmethod
+    def _func(t,K,C,h):
         return K/(1 + C*np.exp(-h*t))
+    
+    def label(self):
+        return 'K={:.2f} C={:.2f} h={:.2f}'.format(*self.param)
 
-def fit_data(t,y,fun,*argv):
+def fit_data(t,y,*argv):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
     y = np.array(y)
     t_float = t_float[y>0]
     y = y[y>0]
-    popt, pcov = curve_fit(fun, t_float, y)
+    f = Logistica(t_float, y)
     
-    label = fun(None, *popt)
+    label = f.label()
         
     if len(argv)>0:
         t_fit = argv[0]
         
         t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
-        y_fit = fun(t_fit_float, *popt)  
+        y_fit = f.evaluate(t_fit_float)  
     
-        return label, y_fit, popt
+        return label, y_fit
     else:
-        return label, popt
+        return label
     
 def plot_regione(data_dict, reg, y_name='totale_casi'):
     if not isinstance(reg, list):
@@ -104,7 +138,7 @@ def summary_regioni(data_dict, y_name='totale_casi'):
         t = [parser.parse(dt['data']) for dt in data_dict if dt['denominazione_regione']==nm]
         y = [dt[y_name]-shift for dt in data_dict if dt['denominazione_regione']==nm]
         
-        label = fit_data(t,y,exp_fun)[0]
+        label = fit_data(t,y)
         
         print('{}: {}'.format(nm, label))
 
@@ -117,9 +151,9 @@ if __name__=="__main__":
         
     y_name = 'totale_ospedalizzati'
         
-    plot_regione(data_reg, ['Campania', 'Lazio'], y_name=y_name)
+    plot_regione(data_reg, ['Lazio', 'Campania'], y_name=y_name)
     
-    plot_regione(data_reg, 'Puglia', y_name=y_name)
+    plot_regione(data_reg, 'Campania', y_name=y_name)
     
     plot_regione(data_reg, 'Lombardia', y_name=y_name)
     
