@@ -17,7 +17,7 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
-    fit_label, y_fit = fit_data(t,y,t_fit)[0:2]
+    fit_label, y_fit = fit_data(t,y,exp_fun,t_fit)[0:2]
     
     if ax is None:
         pyplot.figure()
@@ -33,26 +33,35 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     ax.legend()
     
     return ax
-    
-    
+     
 def exp_fun(t,tau,i0):
-    return i0*np.exp(t/tau)
+    if t is None:
+        t0 = log(i0)*tau
+        label = 'tau={:.2f} t0={:.2f}'.format(tau,t0)
+        return label
+    else:
+        return i0*np.exp(t/tau)
 
-def fit_data(t,y,*argv):
+def logistica_fun(t,K,C,h):
+    if t is None:
+        return 'K={:.2f} C={:.2f} h={:.2f}'.format(K,C,h)
+    else:
+        return K/(1 + C*np.exp(-h*t))
+
+def fit_data(t,y,fun,*argv):
     t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
     y = np.array(y)
     t_float = t_float[y>0]
     y = y[y>0]
-    popt, pcov = curve_fit(exp_fun, t_float, y)
+    popt, pcov = curve_fit(fun, t_float, y)
     
-    t0 = log(popt[1])*popt[0]
-    label = 'tau={:.2f} t0={:.2f}'.format(popt[0],t0)
+    label = fun(None, *popt)
         
     if len(argv)>0:
         t_fit = argv[0]
         
         t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
-        y_fit = exp_fun(t_fit_float, *popt)  
+        y_fit = fun(t_fit_float, *popt)  
     
         return label, y_fit, popt
     else:
@@ -95,7 +104,7 @@ def summary_regioni(data_dict, y_name='totale_casi'):
         t = [parser.parse(dt['data']) for dt in data_dict if dt['denominazione_regione']==nm]
         y = [dt[y_name]-shift for dt in data_dict if dt['denominazione_regione']==nm]
         
-        label = fit_data(t,y)[0]
+        label = fit_data(t,y,exp_fun)[0]
         
         print('{}: {}'.format(nm, label))
 
