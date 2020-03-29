@@ -40,12 +40,29 @@ class Fitting(object):
     def __init__(self, t, y):
         super().__init__()
         
+        t = self._preprocess(t)
+        t, y = self._removeData(t, y) 
+        
         self._fit(t, y)
         
     def _fit(self,t,y):
         popt = curve_fit(self._func, t, y)[0]
         
         self.param = popt
+        
+    @staticmethod
+    def _preprocess(t):
+        t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
+        
+        return t_float
+    
+    @staticmethod
+    def _removeData(t,y):
+        y = np.array(y)
+        t = t[y>0]
+        y = y[y>0]
+        
+        return t, y
      
     @staticmethod   
     def _func(t,*argv):
@@ -55,6 +72,7 @@ class Fitting(object):
         raise NotImplementedError('Method label not implemented!')
     
     def evaluate(self, t):
+        t = self._preprocess(t)
         return self._func(t, *self.param)
         
 class Exponential(Fitting):
@@ -88,19 +106,14 @@ class Logistica(Fitting):
         return 'K={:.2f} C={:.2f} h={:.2f}'.format(*self.param)
 
 def fit_data(t,y,*argv):
-    t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
-    y = np.array(y)
-    t_float = t_float[y>0]
-    y = y[y>0]
-    f = Logistica(t_float, y)
+    f = Logistica(t, y)
     
     label = f.label()
         
     if len(argv)>0:
         t_fit = argv[0]
         
-        t_fit_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t_fit])
-        y_fit = f.evaluate(t_fit_float)  
+        y_fit = f.evaluate(t_fit)  
     
         return label, y_fit
     else:
