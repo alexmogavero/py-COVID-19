@@ -93,6 +93,8 @@ class Exponential(Fitting):
         return 'tau={:.2f} t0={:.2f}'.format(tau,t0)
         
 class Logistica(Fitting):
+    _peakThreshold = 0.95
+    
     def __init__(self, t, y):
         super().__init__(t, y)
         
@@ -106,7 +108,13 @@ class Logistica(Fitting):
         return K/(1 + C*np.exp(-h*t))
     
     def label(self):
-        return 'K={:.2f} C={:.2f} h={:.2f}'.format(*self.param)
+        K = self.param[0]
+        C = self.param[1]
+        h = self.param[2]
+        
+        t_peak = -np.log((1 - self._peakThreshold)/(self._peakThreshold*C))/h
+        
+        return 'Max={:.0f} peak={:.0f}g'.format(K, t_peak)
     
 def plot_regione(data_dict, reg, y_name='totale_casi'):
     if not isinstance(reg, list):
