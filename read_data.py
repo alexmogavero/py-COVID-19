@@ -53,11 +53,15 @@ class Fitting(object):
         
         self.param = popt
         
-    @staticmethod
-    def _preprocess(t):
+    def _preprocess(self,t):
         t_float = np.array([(tt-t[0])/timedelta(days=1) for tt in t])
         
+        self._t0 = t[0]
+        
         return t_float
+    
+    def _floatToTime(self,t):
+        return self._t0 + timedelta(days=1)*t
     
     @staticmethod
     def _removeData(t,y):
@@ -113,8 +117,9 @@ class Logistica(Fitting):
         h = self.param[2]
         
         t_peak = -np.log((1 - self._peakThreshold)/(self._peakThreshold*C))/h
+        t_peak = self._floatToTime(t_peak)
         
-        return 'Max={:.0f} peak={:.0f}g'.format(K, t_peak)
+        return 'Max={:.0f} peak={:s}'.format(K, t_peak.strftime('%d/%m'))
     
 def plot_regione(data_dict, reg, y_name='totale_casi'):
     if not isinstance(reg, list):
