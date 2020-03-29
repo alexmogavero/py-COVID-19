@@ -19,7 +19,10 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     
     t_fit = range(7)
     t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
-    fit_label, y_fit = fit_data(t,y,t_fit)[0:2]
+    
+    fit = Logistica(t,y)
+    fit_label = fit.label()
+    y_fit = fit.evaluate(t_fit)
     
     if ax is None:
         pyplot.figure()
@@ -104,20 +107,6 @@ class Logistica(Fitting):
     
     def label(self):
         return 'K={:.2f} C={:.2f} h={:.2f}'.format(*self.param)
-
-def fit_data(t,y,*argv):
-    f = Logistica(t, y)
-    
-    label = f.label()
-        
-    if len(argv)>0:
-        t_fit = argv[0]
-        
-        y_fit = f.evaluate(t_fit)  
-    
-        return label, y_fit
-    else:
-        return label
     
 def plot_regione(data_dict, reg, y_name='totale_casi'):
     if not isinstance(reg, list):
@@ -156,7 +145,8 @@ def summary_regioni(data_dict, y_name='totale_casi'):
         t = [parser.parse(dt['data']) for dt in data_dict if dt['denominazione_regione']==nm]
         y = [dt[y_name]-shift for dt in data_dict if dt['denominazione_regione']==nm]
         
-        label = fit_data(t,y)
+        fit = Logistica(t,y)
+        label = fit.label()
         
         print('{}: {}'.format(nm, label))
 
