@@ -94,7 +94,7 @@ class Logistica(Fitting):
         super().__init__(t, y)
         
     def _fit(self,t,y):
-        popt = curve_fit(self._func, t, y, p0=[1000.0,100.0,0.2])[0]
+        popt = curve_fit(self._func, t, y, p0=[2000.0,500.0,0.2])[0]
         
         self.param = popt
         
