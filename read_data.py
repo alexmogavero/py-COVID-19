@@ -17,8 +17,8 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
     t = [parser.parse(dt['data']) for dt in data_dict]
     y = [dt[y_name]-shift for dt in data_dict]
     
-    t_fit = range(7)
-    t_fit = t + [t[-2] + timedelta(days=tt) for tt in t_fit]
+    t_fit = range(14)
+    t_fit = t + [t[-1] + timedelta(days=tt) for tt in t_fit]
     
     fit = Logistica(t,y)
     fit_label = fit.label()
