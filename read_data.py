@@ -14,16 +14,6 @@ FILE_STATO = "dpc-covid19-ita-andamento-nazionale.json"
 FILE_REG = "dpc-covid19-ita-regioni.json"
 
 def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
-    t = [parser.parse(dt['data']) for dt in data_dict]
-    y = [dt[y_name]-shift for dt in data_dict]
-    
-    t_fit = range(14)
-    t_fit = t + [t[-1] + timedelta(days=tt) for tt in t_fit]
-    
-    fit = Logistica(t,y)
-    fit_label = fit.label()
-    y_fit = fit.evaluate(t_fit)
-    
     if ax is None:
         pyplot.figure()
         ax = pyplot.axes()
@@ -33,8 +23,29 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
         formatter = dates.DateFormatter('%d/%m')
         ax.xaxis.set_major_formatter(formatter)
         
+    t = [parser.parse(dt['data']) for dt in data_dict]
+    y = [dt[y_name]-shift for dt in data_dict]
+    
     ax.plot_date(t,y)
-    ax.plot_date(t_fit,y_fit,fmt='-',label=name + ' ' + fit_label)
+    
+    t_fit = range(14)
+    t_fit = t + [t[-1] + timedelta(days=tt) for tt in t_fit]
+    
+    fit = Logistica(t,y)
+    fit_label = fit.label()
+    y_fit = fit.evaluate(t_fit)
+        
+    f_line = ax.plot_date(t_fit,y_fit,fmt='-',label=name + ' ' + fit_label)
+    
+    fit = Exponential(t,y)
+    fit_label = fit.label()
+    y_fit = fit.evaluate(t_fit)
+    t_fit = np.array(t_fit)
+    t_fit = t_fit[y_fit < 1.5*np.max(y)]
+    y_fit = y_fit[y_fit < 1.5*np.max(y)]
+        
+    ax.plot_date(t_fit,y_fit,fmt='--',color=f_line[0].get_color(),label=name + ' ' + fit_label)
+    
     ax.legend()
     
     return ax
