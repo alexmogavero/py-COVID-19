@@ -24,7 +24,16 @@ def plot_data(data_dict, shift=0, ax=None, name='', y_name='totale_casi'):
         ax.xaxis.set_major_formatter(formatter)
         
     t = [parser.parse(dt['data']) for dt in data_dict]
+    
+    if y_name not in data_dict[0].keys():
+        msg = '\'{}\' does not exist. Possible plot keys are: \n'.format(y_name)
+        for k in data_dict[0].keys():
+            msg += '{}, '.format(k)
+            
+        raise RuntimeError(msg)
+    
     y = [dt[y_name]-shift for dt in data_dict]
+            
     
     ax.plot_date(t,y)
     
