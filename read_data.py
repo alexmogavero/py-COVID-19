@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from os import path
+import sys
 import json
 from matplotlib import pyplot, dates
 from dateutil import parser
@@ -191,7 +192,10 @@ if __name__=="__main__":
     with open(path.join(DATA_DIR,FILE_STATO), 'r') as f:
         data_stato = json.load(f)
         
-    y_name = 'totale_casi'
+    if len(sys.argv)>1:
+        y_name = sys.argv[1]
+    else:
+        y_name = 'totale_casi'
         
     plot_regione(data_reg, ['Lazio', 'Campania'], y_name=y_name)
     
