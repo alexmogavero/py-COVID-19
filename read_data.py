@@ -105,7 +105,8 @@ class Exponential(Fitting):
         tau = self.param[0]
         i0 = self.param[1]
         t0 = log(i0)*tau
-        return 'tau={:.2f} t0={:.2f}'.format(tau,t0)
+        t0 = self._floatToTime(-t0)
+        return 'tau={:.2f} t0={:s}'.format(tau,t0.strftime('%d/%m'))
         
 class Logistica(Fitting):
     _peakThreshold = 0.95
