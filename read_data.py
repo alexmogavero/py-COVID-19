@@ -6,7 +6,7 @@ from matplotlib import pyplot, dates
 from dateutil import parser
 from datetime import timedelta
 from scipy.optimize import curve_fit
-from math import pow, log
+from math import log
 import numpy as np
 
 DATA_DIR = "../COVID-19/dati-json/"
