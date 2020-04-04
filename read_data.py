@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 from math import pow, log
 import numpy as np
 
-DATA_DIR = "/home/oslo/Software/COVID-19/dati-json/"
+DATA_DIR = "../COVID-19/dati-json/"
 FILE_STATO = "dpc-covid19-ita-andamento-nazionale.json"
 FILE_REG = "dpc-covid19-ita-regioni.json"
 
